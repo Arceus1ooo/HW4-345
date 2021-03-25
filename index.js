@@ -6,7 +6,7 @@ var urlRoot = "https://api.github.com";
 // NCSU Enterprise endpoint:
 //var urlRoot = "https://api.github.ncsu.edu";
 
-var userId = "yy2111";
+var userId = "Arceus1ooo";
 var config = {};
 // Retrieve our api token from the environment variables.
 config.token = process.env.GITHUBTOKEN;
