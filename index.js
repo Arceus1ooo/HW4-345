@@ -7,6 +7,7 @@ var urlRoot = "https://api.github.com";
 //var urlRoot = "https://api.github.ncsu.edu";
 
 var userId = "Arceus1ooo";
+var repo = "HW4-345";
 var config = {};
 // Retrieve our api token from the environment variables.
 config.token = process.env.GITHUBTOKEN;
@@ -25,10 +26,10 @@ if (process.env.NODE_ENV != 'test')
 {
 	(async () => {
 		await listAuthenicatedUserRepos();
-		//await listBranches(userId, "your repo");
-		//await createRepo(userId,newrepo);
-		//await createIssue(userId, repo, issue);
-		//await enableWikiSupport(userId,repo);
+		await listBranches(userId, repo);
+		await createRepo(userId,"test-HW4-345");
+		await createIssue(userId, repo, "issue name", "issue body");
+		await enableWikiSupport(userId,repo);
 
 	})()
 }
@@ -83,7 +84,7 @@ function listAuthenicatedUserRepos()
 				var name = obj[i].name;
 				console.log( name );
 			}
-
+			console.log("\nList repos status code: " + response.statusCode + "\n");
 			// Return object for people calling our method.
 			resolve( obj );
 		});
@@ -94,16 +95,14 @@ function listAuthenicatedUserRepos()
 // 1. Write code for listBranches in a given repo under an owner. See list branches
 async function listBranches(owner,repo)
 {
-	let options = getDefaultOptions(`/`, "GET");
+	let options = getDefaultOptions("/repos/"+owner+"/"+repo+"/branches", "GET");
 
 	// Send a http request to url and specify a callback that will be called upon its return.
 	return new Promise(function(resolve, reject)
 	{
 		request(options, function (error, response, body) {
-
-			// console.debug( options );
+			console.log("Listing branches status code: " + response.statusCode + "\n");
 			resolve( JSON.parse(body) );
-
 		});
 	});
 }
@@ -111,15 +110,30 @@ async function listBranches(owner,repo)
 // 2. Write code to create a new repo
 async function createRepo(owner,repo)
 {
-	let options = getDefaultOptions("/", "POST");
+	let options = getDefaultOptions("/user/repos", "POST");
+	options.body = JSON.stringify({name: repo, description: 'description'});
 
 	// Send a http request to url and specify a callback that will be called upon its return.
 	return new Promise(function(resolve, reject)
 	{
 		request(options, function (error, response, body) {
-
+			if (response.statusCode == 422)
+			{
+				console.log("Repo with this name already exists. Deleting the repo...");
+				options = getDefaultOptions("/repos/"+owner+"/"+repo, "DELETE");
+				request(options, function(error, response, body) {});
+				console.log("Attempting to create another repo with the same details...");
+				createRepo(owner, repo);
+				//options = getDefaultOptions("/user/repos", "POST");
+				//options.body = JSON.stringify({name: repo, description: 'description'});
+				//request(options, function(error, response, body) {});
+			}
+			else if (response.statusCode == 201)
+			{
+				console.log("Repo successfully created!");
+			}
+			console.log("Creating repo status code: " + response.statusCode + "\n");
 			resolve( response.statusCode );
-
 		});
 	});
 
@@ -127,13 +141,15 @@ async function createRepo(owner,repo)
 // 3. Write code for creating an issue for an existing repo.
 async function createIssue(owner,repo, issueName, issueBody)
 {
-	let options = getDefaultOptions("/", "POST");
+	let options = getDefaultOptions("/repos/"+owner+"/"+repo+"/issues", "POST");
+	options.body = JSON.stringify({title: issueName, body: issueBody});
 
 	// Send a http request to url and specify a callback that will be called upon its return.
 	return new Promise(function(resolve, reject)
 	{
 		request(options, function (error, response, body) {
-
+			//console.log(options);
+			console.log("Creating issue status code: " + response.statusCode + "\n");
 			resolve( response.statusCode );
 
 		});
@@ -143,13 +159,14 @@ async function createIssue(owner,repo, issueName, issueBody)
 // 4. Write code for editing a repo to enable wiki support.
 async function enableWikiSupport(owner,repo)
 {
-	let options = getDefaultOptions("/", "PATCH");
+	let options = getDefaultOptions("/repos/"+owner+"/"+repo, "PATCH");
+	options.body = JSON.stringify({has_wiki: true});
 
 	// Send a http request to url and specify a callback that will be called upon its return.
 	return new Promise(function(resolve, reject)
 	{
 		request(options, function (error, response, body) {
-
+			console.log("Enabling wiki support status code: " + response.statusCode + "\n");
 			resolve( JSON.parse(body) );
 		});
 	});	
@@ -161,5 +178,3 @@ module.exports.listBranches = listBranches;
 module.exports.createRepo = createRepo;
 module.exports.createIssue = createIssue;
 module.exports.enableWikiSupport = enableWikiSupport;
-
-
