@@ -21,7 +21,7 @@ describe("GitHub EndPoint Tests", function() {
         
       let user  = await github.getUser();
       let repos = await github.listBranches(user,"HW4-345");
-      expect(repos).to.be.an('array').that.have.nested.property("[0].name").equals("master");
+      expect(repos).to.be.an('array').that.have.nested.property("[0].name").equals("main");
 
     });
 
@@ -51,5 +51,3 @@ describe("GitHub EndPoint Tests", function() {
       expect(response.has_wiki).to.equal(true);
     });
 });
-
-
